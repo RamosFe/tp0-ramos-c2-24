@@ -773,3 +773,91 @@ client1 exited with code 0
 ```
 
 </details>
+
+# Ejercicio 4
+
+## Cliente
+Para el caso del cliente se agrego un `channel` encargado de recibir un mensaje cuando se triggerea un `SIGTERM`:
+
+```go
+// Channel that is notified on SIGTERM
+sigTermChannel := make(chan os.Signal, 1)
+signal.Notify(sigTermChannel, syscall.SIGTERM)
+```
+
+Una vez seteado el channel, se le pasa a la función StartClientLoop donde se utiliza un select para responder al primer "evento" que ocurra primero. Hay 2 posibles eventos:
+
+- signalChan: El segundo evento es triggereado cuando se recibe la notificación del `SIGTERM`.
+- Timeout LoopPeriod: El tercer evento es triggereado cuando se pasa el tiempo configurado en 
+`loop.period` que determina el periodo de tiempo a esperar entre cada mensaje.
+
+```go
+select {
+case <-terminateChan:
+	log.Infof("action: sigterm_signal | result: success | client_id: %v", c.config.ID)
+	return
+	
+case <-time.After(c.config.LoopPeriod):
+	continue	
+}
+```
+
+## Servidor
+En el caso del server se agregaron las siguientes lineas:
+
+```python
+# Define signal handlers
+signal.signal(signal.SIGINT, self._handle_signal)
+signal.signal(signal.SIGTERM, self._handle_signal)
+```
+
+Esto define `handlers` para cuando llegue las `signals` `SIGINT` y `SIGTERM`. El método `_handle_signal`
+se encarga de cerrar todos los sockets activos de clientes, luego el socket del servidor y finalmente dar
+de baja el mismo.
+
+Tambien se agrego la property `self._shutdown` para identificar cuando se
+obtuvo una signal. Si bien no es de gran utilidad en este momento y solo nos sirve
+para catchear errores en el main loop causados por el cierre del server socket, en el futuro
+este propiedad se puede reemplazar por un `multiprocessing.Event` como metodo de
+sincronización entre los múltiples procesos.
+
+<details>
+<summary>Ejemplo de ejecución</summary>
+
+```console
+docker compose -f docker-compose-dev.yaml up -d           06:15:20 PM
+[+] Running 3/4
+ ⠼ Network tp0_testing_net  Created                                                                                0.4s
+ ✔ Container server         Started                                                                                0.2s
+ ✔ Container netcat         Started                                                                                0.4s
+ ✔ Container client1        Started                                                                                0.4s
+docker compose -f docker-compose-dev.yaml stop            06:15:23 PM
+[+] Stopping 3/3
+ ✔ Container netcat   Stopped                                                                                      0.0s
+ ✔ Container client1  Stopped                                                                                      0.1s
+ ✔ Container server   Stopped                                                                                      0.1s
+docker compose -f docker-compose-dev.yaml logs            06:15:28 PM
+netcat  | action: test_echo_server | result: success
+server  | 2024-09-01 21:15:23 DEBUG    action: config | result: success | port: 12345 | listen_backlog: 5 | logging_level: DEBUG
+server  | 2024-09-01 21:15:23 INFO     action: accept_connections | result: in_progress
+server  | 2024-09-01 21:15:23 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server  | 2024-09-01 21:15:23 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: Test Message
+server  | 2024-09-01 21:15:23 INFO     action: accept_connections | result: in_progress
+server  | 2024-09-01 21:15:24 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 21:15:24 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°1
+client1  | 2024-09-01 21:15:23 INFO     action: config | result: success | client_id: 1 | server_address: server:12345 | loop_amount: 5 | loop_period: 1s | log_level: DEBUG
+client1  | 2024-09-01 21:15:24 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°1
+client1  | 2024-09-01 21:15:26 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°2
+client1  | 2024-09-01 21:15:28 INFO     action: sigterm_signal | result: success | client_id: 1
+server   | 2024-09-01 21:15:24 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 21:15:26 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 21:15:26 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°2
+server   | 2024-09-01 21:15:26 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 21:15:28 INFO     action: signal_handler | result: success | signal: 15
+server   | 2024-09-01 21:15:28 DEBUG    action: close server socket | result: success
+server   | 2024-09-01 21:15:28 INFO     action: receive_sigterm | result: success | msg: breaking server loop
+
+```
+
+
+</details>
