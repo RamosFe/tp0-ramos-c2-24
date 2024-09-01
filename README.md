@@ -178,3 +178,499 @@ Cada ejercicio deberá resolverse en una rama independiente con nombres siguiend
 Puden obtener un listado del último commit de cada rama ejecutando `git ls-remote`.
 
 Finalmente, se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección provistos [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+# Resolución - TP 0 Ramos Federico Cuatrimestre 2 2024
+## Ejercicio 1
+
+Se escribio el código necesario para la creación de un `yaml` con N clientes, siendo la cantidad de clientes
+y el nombre del archivo `yaml` configurable por cli. Para ejecutar el script se debe:
+
+```console
+bash scripts/docker_generator.sh
+```
+
+<details>
+<summary>Ejemplo de ejecución</summary>
+
+```console
+bash scripts/docker_generator.sh                                    
+Ingrese el nombre del archivo a crear: example.yaml
+Ingrese el número de clientes: 12
+```
+
+</details>
+
+<details>
+<summary>Archivo generado</summary>
+
+```yaml
+name: tp0
+services:
+  server:
+    container_name: server
+    image: server:latest
+    entrypoint: python3 /main.py
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOGGING_LEVEL=DEBUG
+    networks:
+      - testing_net
+
+  client1:
+    container_name: client1
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=1
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client2:
+    container_name: client2
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=2
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client3:
+    container_name: client3
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=3
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client4:
+    container_name: client4
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=4
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client5:
+    container_name: client5
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=5
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client6:
+    container_name: client6
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=6
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client7:
+    container_name: client7
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=7
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client8:
+    container_name: client8
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=8
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client9:
+    container_name: client9
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=9
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client10:
+    container_name: client10
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=10
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client11:
+    container_name: client11
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=11
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+  client12:
+    container_name: client12
+    image: client:latest
+    entrypoint: /client
+    environment:
+      - CLI_ID=12
+      - CLI_LOG_LEVEL=DEBUG
+    networks:
+      - testing_net
+    depends_on:
+      - server
+
+
+networks:
+  testing_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.125.0/24
+
+
+```
+</details>
+
+<details>
+<summary>Uso de docker compose con el archivo generado</summary>
+
+```console
+ docker compose -f example.yaml up                          02:56:14 PM
+[+] Running 14/14
+ ✔ Network tp0_testing_net  Created                                                                                0.0s
+ ✔ Container server         Created                                                                                0.0s
+ ✔ Container client5        Created                                                                                0.1s
+ ✔ Container client12       Created                                                                                0.1s
+ ✔ Container client6        Created                                                                                0.1s
+ ✔ Container client7        Created                                                                                0.1s
+ ✔ Container client3        Created                                                                                0.0s
+ ✔ Container client2        Created                                                                                0.1s
+ ✔ Container client1        Created                                                                                0.1s
+ ✔ Container client10       Created                                                                                0.1s
+ ✔ Container client8        Created                                                                                0.1s
+ ✔ Container client9        Created                                                                                0.1s
+ ✔ Container client11       Created                                                                                0.1s
+ ✔ Container client4        Created                                                                                0.1s
+Attaching to client1, client10, client11, client12, client2, client3, client4, client5, client6, client7, client8, client9, server
+server    | 2024-09-01 17:56:16 DEBUG    action: config | result: success | port: 12345 | listen_backlog: 5 | logging_level: DEBUG
+server    | 2024-09-01 17:56:16 INFO     action: accept_connections | result: in_progress
+client6   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 6 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+client5   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 5 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 5] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client5   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 5 | msg: [CLIENT 5] Message N°1
+client1   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 1 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.5
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.5 | msg: [CLIENT 1] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client1   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°1
+client7   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 7 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+client7   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 7 | msg: [CLIENT 7] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.6
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.6 | msg: [CLIENT 7] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client3   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 3 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+client3   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 3 | msg: [CLIENT 3] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.7
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.7 | msg: [CLIENT 3] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client9   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 9 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.8
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.8 | msg: [CLIENT 9] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client9   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 9 | msg: [CLIENT 9] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.9
+client11  | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 11 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.9 | msg: [CLIENT 11] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client11  | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 11 | msg: [CLIENT 11] Message N°1
+client12  | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 12 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.10
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.10 | msg: [CLIENT 12] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client12  | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 12 | msg: [CLIENT 12] Message N°1
+client2   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 2 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+client2   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 2 | msg: [CLIENT 2] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.11
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.11 | msg: [CLIENT 2] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client10  | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 10 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.12
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.12 | msg: [CLIENT 10] Message N°1
+client10  | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 10 | msg: [CLIENT 10] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client4   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 4 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.13
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.13 | msg: [CLIENT 4] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client4   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 4 | msg: [CLIENT 4] Message N°1
+client8   | 2024-09-01 17:56:17 INFO     action: config | result: success | client_id: 8 | server_address: server:12345 | loop_amount: 5 | loop_period: 5s | log_level: DEBUG
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: success | ip: 172.25.125.14
+server    | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | ip: 172.25.125.14 | msg: [CLIENT 8] Message N°1
+server    | 2024-09-01 17:56:17 INFO     action: accept_connections | result: in_progress
+client8   | 2024-09-01 17:56:17 INFO     action: receive_message | result: success | client_id: 8 | msg: [CLIENT 8] Message N°1
+server    | 2024-09-01 17:56:18 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server    | 2024-09-01 17:56:18 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: [CLIENT 6] Message N°1
+client6   | 2024-09-01 17:56:18 INFO     action: receive_message | result: success | client_id: 6 | msg: [CLIENT 6] Message N°1
+server    | 2024-09-01 17:56:18 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+client5   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 5 | msg: [CLIENT 5] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 5] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.5
+client1   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.5 | msg: [CLIENT 1] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.6
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.6 | msg: [CLIENT 7] Message N°2
+client7   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 7 | msg: [CLIENT 7] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.7
+client3   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 3 | msg: [CLIENT 3] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.7 | msg: [CLIENT 3] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+client9   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 9 | msg: [CLIENT 9] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.9
+client11  | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 11 | msg: [CLIENT 11] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.9 | msg: [CLIENT 11] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.8
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.8 | msg: [CLIENT 9] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.10
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.10 | msg: [CLIENT 12] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+client12  | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 12 | msg: [CLIENT 12] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.11
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.11 | msg: [CLIENT 2] Message N°2
+client2   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 2 | msg: [CLIENT 2] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.12
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.12 | msg: [CLIENT 10] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+client10  | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 10 | msg: [CLIENT 10] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.13
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.13 | msg: [CLIENT 4] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+client4   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 4 | msg: [CLIENT 4] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: success | ip: 172.25.125.14
+server    | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | ip: 172.25.125.14 | msg: [CLIENT 8] Message N°2
+client8   | 2024-09-01 17:56:22 INFO     action: receive_message | result: success | client_id: 8 | msg: [CLIENT 8] Message N°2
+server    | 2024-09-01 17:56:22 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:23 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server    | 2024-09-01 17:56:23 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: [CLIENT 6] Message N°2
+client6   | 2024-09-01 17:56:23 INFO     action: receive_message | result: success | client_id: 6 | msg: [CLIENT 6] Message N°2
+server    | 2024-09-01 17:56:23 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 5] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+client5   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 5 | msg: [CLIENT 5] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.5
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.5 | msg: [CLIENT 1] Message N°3
+client1   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.6
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.6 | msg: [CLIENT 7] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+client7   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 7 | msg: [CLIENT 7] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.7
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.7 | msg: [CLIENT 3] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+client3   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 3 | msg: [CLIENT 3] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.8
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.8 | msg: [CLIENT 9] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.9
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.9 | msg: [CLIENT 11] Message N°3
+client11  | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 11 | msg: [CLIENT 11] Message N°3
+client9   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 9 | msg: [CLIENT 9] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.10
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.10 | msg: [CLIENT 12] Message N°3
+client12  | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 12 | msg: [CLIENT 12] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.11
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.11 | msg: [CLIENT 2] Message N°3
+client2   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 2 | msg: [CLIENT 2] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.12
+client10  | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 10 | msg: [CLIENT 10] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.12 | msg: [CLIENT 10] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+client4   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 4 | msg: [CLIENT 4] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.13
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.13 | msg: [CLIENT 4] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: success | ip: 172.25.125.14
+server    | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | ip: 172.25.125.14 | msg: [CLIENT 8] Message N°3
+server    | 2024-09-01 17:56:27 INFO     action: accept_connections | result: in_progress
+client8   | 2024-09-01 17:56:27 INFO     action: receive_message | result: success | client_id: 8 | msg: [CLIENT 8] Message N°3
+server    | 2024-09-01 17:56:28 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server    | 2024-09-01 17:56:28 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: [CLIENT 6] Message N°3
+server    | 2024-09-01 17:56:28 INFO     action: accept_connections | result: in_progress
+client6   | 2024-09-01 17:56:28 INFO     action: receive_message | result: success | client_id: 6 | msg: [CLIENT 6] Message N°3
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 5] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+client5   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 5 | msg: [CLIENT 5] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.5
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.5 | msg: [CLIENT 1] Message N°4
+client1   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.6
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.6 | msg: [CLIENT 7] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+client7   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 7 | msg: [CLIENT 7] Message N°4
+client3   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 3 | msg: [CLIENT 3] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.7
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.7 | msg: [CLIENT 3] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+client11  | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 11 | msg: [CLIENT 11] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.9
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.9 | msg: [CLIENT 11] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.8
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.8 | msg: [CLIENT 9] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+client9   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 9 | msg: [CLIENT 9] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.10
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.10 | msg: [CLIENT 12] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+client12  | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 12 | msg: [CLIENT 12] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.11
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.11 | msg: [CLIENT 2] Message N°4
+client2   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 2 | msg: [CLIENT 2] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.12
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.12 | msg: [CLIENT 10] Message N°4
+client10  | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 10 | msg: [CLIENT 10] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+client4   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 4 | msg: [CLIENT 4] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.13
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.13 | msg: [CLIENT 4] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: success | ip: 172.25.125.14
+server    | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | ip: 172.25.125.14 | msg: [CLIENT 8] Message N°4
+client8   | 2024-09-01 17:56:32 INFO     action: receive_message | result: success | client_id: 8 | msg: [CLIENT 8] Message N°4
+server    | 2024-09-01 17:56:32 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:33 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server    | 2024-09-01 17:56:33 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: [CLIENT 6] Message N°4
+client6   | 2024-09-01 17:56:33 INFO     action: receive_message | result: success | client_id: 6 | msg: [CLIENT 6] Message N°4
+server    | 2024-09-01 17:56:33 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 5] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client5   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 5 | msg: [CLIENT 5] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.5
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.5 | msg: [CLIENT 1] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client1   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.6
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.6 | msg: [CLIENT 7] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client7   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 7 | msg: [CLIENT 7] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.7
+client3   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 3 | msg: [CLIENT 3] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.7 | msg: [CLIENT 3] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.9
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.9 | msg: [CLIENT 11] Message N°5
+client11  | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 11 | msg: [CLIENT 11] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.8
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.8 | msg: [CLIENT 9] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client9   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 9 | msg: [CLIENT 9] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.10
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.10 | msg: [CLIENT 12] Message N°5
+client12  | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 12 | msg: [CLIENT 12] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.11
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.11 | msg: [CLIENT 2] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client2   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 2 | msg: [CLIENT 2] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.12
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.12 | msg: [CLIENT 10] Message N°5
+client10  | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 10 | msg: [CLIENT 10] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client4   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 4 | msg: [CLIENT 4] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.13
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.13 | msg: [CLIENT 4] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: success | ip: 172.25.125.14
+server    | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | ip: 172.25.125.14 | msg: [CLIENT 8] Message N°5
+server    | 2024-09-01 17:56:37 INFO     action: accept_connections | result: in_progress
+client8   | 2024-09-01 17:56:37 INFO     action: receive_message | result: success | client_id: 8 | msg: [CLIENT 8] Message N°5
+client6   | 2024-09-01 17:56:38 INFO     action: receive_message | result: success | client_id: 6 | msg: [CLIENT 6] Message N°5
+server    | 2024-09-01 17:56:38 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server    | 2024-09-01 17:56:38 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: [CLIENT 6] Message N°5
+server    | 2024-09-01 17:56:38 INFO     action: accept_connections | result: in_progress
+client5   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 5
+client1   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 1
+client7   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 7
+client5 exited with code 0
+client3   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 3
+client1 exited with code 0
+client11  | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 11
+client9   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 9
+client7 exited with code 0
+client3 exited with code 0
+client12  | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 12
+client9 exited with code 0
+client11 exited with code 0
+client2   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 2
+client10  | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 10
+client12 exited with code 0
+client4   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 4
+client8   | 2024-09-01 17:56:42 INFO     action: loop_finished | result: success | client_id: 8
+client2 exited with code 0
+client10 exited with code 0
+client8 exited with code 0
+client4 exited with code 0
+client6   | 2024-09-01 17:56:43 INFO     action: loop_finished | result: success | client_id: 6
+client6 exited with code 0
+```
+
+</details>
