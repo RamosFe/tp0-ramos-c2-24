@@ -679,7 +679,7 @@ client6 exited with code 0
 Para el segundo ejercicio se agregaron volumenes y mount binds para mapear la configuración dentro del host con
 los contenidos dentro del container de la siguiente manera:
 
-```
+```yaml
   server:
     container_name: server
     ...
