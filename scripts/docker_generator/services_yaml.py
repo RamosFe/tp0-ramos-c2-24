@@ -31,6 +31,8 @@ class ServicesDefinition:
             f"      - LOGGING_LEVEL={self._log_level}\n"
             f"    networks:\n"
             f"      - testing_net\n"
+            f"    volumes:\n"
+            f"      - ./config/server/config.ini:/config.ini\n"
         )
 
     def get_networks_definition(self) -> str:

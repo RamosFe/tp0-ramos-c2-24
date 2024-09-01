@@ -43,4 +43,6 @@ class ClientDefinition:
             f"      - testing_net\n"
             f"    depends_on:\n"
             f"      - server\n\n"
+            f"    volumes:\n"
+            f"      - ./config/client/config.yaml:/config.yaml\n"
         )
