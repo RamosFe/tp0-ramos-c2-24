@@ -696,3 +696,80 @@ los contenidos dentro del container de la siguiente manera:
 El mount bind nos permite inyectar la configuración de cada uno de los containers sin la necesidad
 de rebuildear la imagen, al igual que nos permite hacer la aplicación más segura debido a que la configuración
 no queda persistida en la imagen a la hora de buildearla.
+
+
+# Ejercicio 3
+Para el ejercicio 3 se creo el script `validar-echo-server.sh`:
+
+```bash
+TEST_MESSAGE="Test Message"
+
+RESPONSE=$(echo "$TEST_MESSAGE" | nc "server:12345")
+
+if [ "$RESPONSE" = "$TEST_MESSAGE" ]; then
+    echo "action: test_echo_server | result: success"
+else
+    echo "action: test_echo_server | result: fail"
+fi
+
+```
+
+El script se encarga de enviar un mensaje al servidor e imprimir el resultado que devuelve el servidor. Para ejecutar
+este script dentro de la red que levanta `docker` se agrego un nuevo servicio a la definición del `docker-compose`:
+
+```yaml
+  netcat:
+    container_name: netcat
+    image: alpine:latest
+    entrypoint: [ "/bin/sh", "./validar-echo-server.sh" ]
+    networks:
+      - testing_net
+    depends_on:
+      - server
+    volumes:
+      - ./validar-echo-server.sh:/validar-echo-server.sh
+```
+
+Este servicio usa como imagen base `alpine:latest`. Se utilizo esta imagen debido a que tiene todas
+las funcionalidades necesarias y solo pesa `5MB`, haciendola ideal para la ejecución de scripts de este
+estilo. Además se utilizo un mount bind para mappear el script en la maquina host con el container y asi
+poder probar el script sin necesidad de rebuildear la imagen.
+
+
+<details>
+<summary>Ejemplo de ejecución</summary>
+
+```console
+docker compose -f docker-compose-dev.yaml logs -f
+client1  | 2024-09-01 20:27:40 INFO     action: config | result: success | client_id: 1 | server_address: server:12345 | loop_amount: 5 | loop_period: 1s | log_level: DEBUG
+client1  | 2024-09-01 20:27:40 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°1
+client1  | 2024-09-01 20:27:41 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°2
+client1  | 2024-09-01 20:27:42 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°3
+client1  | 2024-09-01 20:27:43 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°4
+netcat   | action: test_echo_server | result: success
+server   | 2024-09-01 20:27:40 DEBUG    action: config | result: success | port: 12345 | listen_backlog: 5 | logging_level: DEBUG
+server   | 2024-09-01 20:27:40 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 20:27:40 INFO     action: accept_connections | result: success | ip: 172.25.125.3
+server   | 2024-09-01 20:27:40 INFO     action: receive_message | result: success | ip: 172.25.125.3 | msg: Test Message
+server   | 2024-09-01 20:27:40 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 20:27:40 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 20:27:40 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°1
+server   | 2024-09-01 20:27:40 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 20:27:41 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 20:27:41 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°2
+server   | 2024-09-01 20:27:41 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 20:27:42 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 20:27:42 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°3
+server   | 2024-09-01 20:27:42 INFO     action: accept_connections | result: in_progress
+server   | 2024-09-01 20:27:43 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 20:27:43 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°4
+server   | 2024-09-01 20:27:43 INFO     action: accept_connections | result: in_progress
+client1  | 2024-09-01 20:27:44 INFO     action: receive_message | result: success | client_id: 1 | msg: [CLIENT 1] Message N°5
+server   | 2024-09-01 20:27:44 INFO     action: accept_connections | result: success | ip: 172.25.125.4
+server   | 2024-09-01 20:27:44 INFO     action: receive_message | result: success | ip: 172.25.125.4 | msg: [CLIENT 1] Message N°5
+server   | 2024-09-01 20:27:44 INFO     action: accept_connections | result: in_progress
+client1  | 2024-09-01 20:27:45 INFO     action: loop_finished | result: success | client_id: 1
+client1 exited with code 0
+```
+
+</details>
