@@ -84,9 +84,12 @@ class Server:
 
                 if identifier.type == ProtocolType.TypeMessage:
                     msg = Message.from_socket(client_sock)
-                    bet = Bet.from_str(msg.payload.decode('utf-8'))
-                    logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {str(msg.payload)}')
-                    store_bets([bet])
+                    bets = Bet.from_multiple_str(msg.payload.decode('utf-8'))
+
+                    store_bets(bets)
+                    # TODO - Handle error response
+                    logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
+
                     write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
                 elif identifier.type == ProtocolType.TypeFlag:
                     flag = ResponseFlag.from_socket(client_sock)
