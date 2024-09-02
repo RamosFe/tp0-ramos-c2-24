@@ -3,6 +3,7 @@ import struct
 import socket
 from typing import Literal
 
+from server.protocol.identifier import ProtocolType, Identifier
 from server.utils.socket import read_from_socket
 
 class MessageType(int, enum.Enum):
@@ -36,6 +37,7 @@ class Message:
             size (int): The size of the payload in bytes.
             payload (bytes): The payload data.
         """
+        self.identifier = Identifier(ProtocolType.TypeMessage)
         self.msg_type = msg_type
         self.size = size
         self.payload = payload
@@ -49,7 +51,7 @@ class Message:
         """
         msg_type_bytes = struct.pack('>B', self.msg_type.value)
         header_bytes = struct.pack('>H', self.size)
-        return msg_type_bytes + header_bytes + self.payload
+        return  self.identifier.to_bytes() + msg_type_bytes + header_bytes + self.payload
 
     @classmethod
     def from_socket(cls, socket: socket.socket):

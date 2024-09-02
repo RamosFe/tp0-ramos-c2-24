@@ -1,4 +1,5 @@
 import socket
+import logging
 
 def write_to_socket(socket: socket.socket, msg: bytes):
     """

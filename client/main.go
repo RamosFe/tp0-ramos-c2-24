@@ -34,6 +34,7 @@ func InitConfig() (*viper.Viper, error) {
 
 	// Add env variables supported
 	v.BindEnv("id")
+	v.BindEnv("bets", "file")
 	v.BindEnv("server", "address")
 	v.BindEnv("loop", "period")
 	v.BindEnv("loop", "amount")
@@ -109,6 +110,7 @@ func main() {
 		ID:            v.GetString("id"),
 		LoopAmount:    v.GetInt("loop.amount"),
 		LoopPeriod:    v.GetDuration("loop.period"),
+		CsvFilename:   v.GetString("bets.file"),
 	}
 
 	signalChan := make(chan os.Signal, 1)

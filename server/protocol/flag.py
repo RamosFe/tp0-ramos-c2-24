@@ -1,6 +1,8 @@
 import socket
 import struct
 import enum
+
+from server.protocol.identifier import Identifier, ProtocolType
 from server.utils.socket import read_from_socket
 
 class FlagType(int, enum.Enum):
@@ -10,9 +12,11 @@ class FlagType(int, enum.Enum):
     Attributes:
         OK (int): Represents a successful response.
         ERROR (int): Represents an error response.
+        END (int): Represents the end of communication.
     """
     OK = 0
     ERROR = 1
+    END = 2
 
 class ResponseFlag:
     """
@@ -30,6 +34,7 @@ class ResponseFlag:
         Args:
             flag_type (FlagType): The type of the flag.
         """
+        self.identifier = Identifier(ProtocolType.TypeFlag)
         self.flag_type = flag_type
 
     def to_bytes(self) -> bytes:
@@ -40,7 +45,7 @@ class ResponseFlag:
             bytes: The byte representation of the response flag.
         """
         flag_type_bytes = struct.pack('>B', self.flag_type)
-        return flag_type_bytes
+        return self.identifier.to_bytes() +  flag_type_bytes
 
     @classmethod
     def from_socket(cls, socket: socket.socket):

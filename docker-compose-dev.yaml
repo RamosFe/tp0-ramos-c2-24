@@ -19,17 +19,14 @@ services:
     environment:
       - CLI_ID=1
       - CLI_LOG_LEVEL=DEBUG
-      - NOMBRE=Roberto
-      - APELLIDO=Ramirez
-      - DOCUMENTO=40566677
-      - NACIMIENTO=1947-09-29
-      - NUMERO=6000
+      - CLI_BETS_FILE=agency-1.csv
     networks:
       - testing_net
     depends_on:
       - server
     volumes:
       - ./config/client/config.yaml:/config.yaml
+      - ./.data/agency-1.csv:/agency-1.csv
 
 networks:
   testing_net:
