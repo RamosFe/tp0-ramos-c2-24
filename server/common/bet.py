@@ -1,6 +1,5 @@
 import csv
 import datetime
-import time
 
 
 """ Bets storage location. """
@@ -23,6 +22,35 @@ class Bet:
         self.document = document
         self.birthdate = datetime.date.fromisoformat(birthdate)
         self.number = int(number)
+
+
+    @staticmethod
+    def from_str(data: str):
+        """
+        Creates a Bet instance from a comma-separated string.
+
+        Args:
+            data (str): A comma-separated string with the format:
+                'first_name,last_name,document,birthdate,number,agency'
+
+        Returns:
+            Bet: An instance of Bet created from the string data.
+
+        Raises:
+            ValueError: If the input string does not contain exactly 6 comma-separated values.
+        """
+        separated_str = data.split(',')
+        if len(separated_str) != 6:
+            raise ValueError(f'Invalid message: {data}')
+
+        return Bet(
+            first_name=separated_str[0],
+            last_name=separated_str[1],
+            document=separated_str[2],
+            birthdate=separated_str[3],
+            number=separated_str[4],
+            agency=separated_str[5]
+        )
 
 """ Checks whether a bet won the prize or not. """
 def has_won(bet: Bet) -> bool:

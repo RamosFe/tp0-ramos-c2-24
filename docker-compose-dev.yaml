@@ -19,23 +19,17 @@ services:
     environment:
       - CLI_ID=1
       - CLI_LOG_LEVEL=DEBUG
+      - NOMBRE=Roberto
+      - APELLIDO=Ramirez
+      - DOCUMENTO=40566677
+      - NACIMIENTO=1947-09-29
+      - NUMERO=6000
     networks:
       - testing_net
     depends_on:
       - server
     volumes:
       - ./config/client/config.yaml:/config.yaml
-
-  netcat:
-    container_name: netcat
-    image: alpine:latest
-    entrypoint: [ "/bin/sh", "./validar-echo-server.sh" ]
-    networks:
-      - testing_net
-    depends_on:
-      - server
-    volumes:
-      - ./validar-echo-server.sh:/validar-echo-server.sh
 
 networks:
   testing_net:
