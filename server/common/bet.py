@@ -26,6 +26,19 @@ class Bet:
 
     @staticmethod
     def from_str(data: str):
+        """
+        Creates a Bet instance from a comma-separated string.
+
+        Args:
+            data (str): A comma-separated string with the format:
+                'first_name,last_name,document,birthdate,number,agency'
+
+        Returns:
+            Bet: An instance of Bet created from the string data.
+
+        Raises:
+            ValueError: If the input string does not contain exactly 6 comma-separated values.
+        """
         separated_str = data.split(',')
         if len(separated_str) != 6:
             raise ValueError(f'Invalid message: {data}')

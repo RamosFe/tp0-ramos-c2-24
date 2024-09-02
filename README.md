@@ -180,7 +180,7 @@ Puden obtener un listado del último commit de cada rama ejecutando `git ls-remo
 Finalmente, se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección provistos [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
 
 # Resolución - TP 0 Ramos Federico Cuatrimestre 2 2024
-## Ejercicio 1
+# Ejercicio 1
 
 Se escribio el código necesario para la creación de un `yaml` con N clientes, siendo la cantidad de clientes
 y el nombre del archivo `yaml` configurable por cli. Para ejecutar el script se debe:
@@ -675,7 +675,7 @@ client6 exited with code 0
 
 </details>
 
-## Ejercicio 2
+# Ejercicio 2
 Para el segundo ejercicio se agregaron volumenes y mount binds para mapear la configuración dentro del host con
 los contenidos dentro del container de la siguiente manera:
 
@@ -861,3 +861,86 @@ server   | 2024-09-01 21:15:28 INFO     action: receive_sigterm | result: succes
 
 
 </details>
+
+# Ejercicio 5
+
+Para el protocolo se utilizan 2 tipos de mensaje:
+- Message
+- ResponseFlag
+
+> Si bien voy a ir mostrando cada uno de los tipos de mensaje en código Python, la implementación
+> se hizo en ambos lenguajes
+
+### Message
+
+El `Message` es un mensaje que esta compuesto por:
+- MsgType: El tipo del mensaje. Este tipo especifica que contiene en el `payload` del mismo. En este ejercicio el único tipo es `SEND_BET`. Tiene tamaño de 1 byte
+- Size: Un header utilizado para especificar el tamaño del payload. Tiene el tamaño de 2 bytes. Este tamaño fue elegido por el siguiente ejercicio. Ya que el batcheo puede tener un tamaño no mayor a 8KB, 2 bytes pueden representar payloads de tamaño de 65,536 bytes.
+- Payload: El contenido del mensaje.
+
+```python
+class MessageType(int, enum.Enum):
+    SEND_BET = 0
+
+class Message:
+    MSG_TYPE_SIZE = 1
+    HEADER_SIZE = 2
+    ENDIAN: Literal["little", "big"] = "big"
+
+    def __init__(self, msg_type: MessageType, size: int, payload: bytes):
+        self.msg_type = msg_type
+        self.size = size
+        self.payload = payload
+
+    def to_bytes(self) -> bytes:
+        msg_type_bytes = struct.pack('>B', self.msg_type.value)
+        header_bytes = struct.pack('>H', self.size)
+        return msg_type_bytes + header_bytes + self.payload
+
+    @classmethod
+    def from_socket(cls, socket: socket.socket):
+        msg_type = read_from_socket(socket, Message.MSG_TYPE_SIZE)
+        payload_size = read_from_socket(socket, Message.HEADER_SIZE)
+        payload_size_int = int.from_bytes(payload_size, Message.ENDIAN)
+        payload = read_from_socket(socket, payload_size_int)
+
+        return cls(MessageType(msg_type[0]), payload_size_int, payload)
+```
+
+### ResponseFlag
+
+El `ResponseFlag` es un mensaje utilizado para denotar un evento. Principalmente es usado para hacer acknowledge de operaciones
+y devolver si hubo o no un error. Para este ejercicio solo se tienen 2 tipos de flag:
+- `OK`: Señaliza que la operación de recepción y guardado de bet no tuvo errores.
+- `ERROR`: Señaliza que la operación de recepción y guardado de bet tuvo errores.
+
+```python
+class FlagType(int, enum.Enum):
+    OK = 0
+    ERROR = 1
+
+
+class ResponseFlag:
+    FLAG_TYPE_SIZE = 1
+
+    def __init__(self, flag_type: FlagType):
+        self.flag_type = flag_type
+
+    def to_bytes(self) -> bytes:
+        flag_type_bytes = struct.pack('>B', self.flag_type)
+        return flag_type_bytes
+
+    @classmethod
+    def from_socket(cls, socket: socket.socket):
+        flag_type = read_from_socket(socket, ResponseFlag.FLAG_TYPE_SIZE)
+
+        return cls(FlagType(flag_type[0]))
+
+    @classmethod
+    def ok(cls):
+        return cls(FlagType.OK)
+
+    @classmethod
+    def error(cls):
+        return cls(FlagType.ERROR)
+```
