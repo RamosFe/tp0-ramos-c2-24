@@ -1,4 +1,4 @@
-from common.utils import *
+from server.common.bet import *
 import os
 import unittest
 

@@ -18,16 +18,17 @@ const (
 const BetStringSeparator = ","
 
 type Bet struct {
-	name          string
-	lastname      string
-	document      int
-	birthday      string
-	lotteryNumber int
+	Name          string
+	Lastname      string
+	Document      int
+	Birthday      string
+	LotteryNumber int
+	Agency        int
 }
 
 // GetFromEnv retrieves the Bet fields from environment variables
 // and populates the Bet struct. Returns an error if parsing fails.
-func (b *Bet) GetFromEnv() error {
+func (b *Bet) GetFromEnv(agency int) error {
 	name := os.Getenv(EnvNameField)
 	surname := os.Getenv(EnvSurnameField)
 	documentStr := os.Getenv(EnvDocumentField)
@@ -36,7 +37,7 @@ func (b *Bet) GetFromEnv() error {
 
 	document, err := strconv.ParseUint(documentStr, 10, 32)
 	if err != nil {
-		return fmt.Errorf("failed to parse document: %w", err)
+		return fmt.Errorf("failed to parse Document: %w", err)
 	}
 
 	ticketNumber, err := strconv.ParseUint(ticketNumberStr, 10, 32)
@@ -44,11 +45,12 @@ func (b *Bet) GetFromEnv() error {
 		return fmt.Errorf("failed to parse ticket number: %w", err)
 	}
 
-	b.name = name
-	b.lastname = surname
-	b.document = int(document)
-	b.birthday = birthdayStr
-	b.lotteryNumber = int(ticketNumber)
+	b.Name = name
+	b.Lastname = surname
+	b.Document = int(document)
+	b.Birthday = birthdayStr
+	b.LotteryNumber = int(ticketNumber)
+	b.Agency = agency
 
 	return nil
 }
@@ -56,11 +58,12 @@ func (b *Bet) GetFromEnv() error {
 // ToString converts the Bet struct to a string with fields
 // separated by a defined separator.
 func (b *Bet) ToString() string {
-	return b.name + BetStringSeparator +
-		b.lastname + BetStringSeparator +
-		strconv.Itoa(b.document) + BetStringSeparator +
-		b.birthday + BetStringSeparator +
-		strconv.Itoa(b.lotteryNumber) + BetStringSeparator
+	return b.Name + BetStringSeparator +
+		b.Lastname + BetStringSeparator +
+		strconv.Itoa(b.Document) + BetStringSeparator +
+		b.Birthday + BetStringSeparator +
+		strconv.Itoa(b.LotteryNumber) + BetStringSeparator +
+		strconv.Itoa(b.Agency)
 }
 
 // FromBytes parses a byte slice into a Bet struct. Returns an
@@ -75,7 +78,7 @@ func (b *Bet) FromBytes(buffer []byte) error {
 
 	document, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return fmt.Errorf("invalid document: not an integer - %s", parts[2])
+		return fmt.Errorf("invalid Document: not an integer - %s", parts[2])
 	}
 
 	lotteryNumber, err := strconv.Atoi(parts[4])
@@ -83,11 +86,17 @@ func (b *Bet) FromBytes(buffer []byte) error {
 		return fmt.Errorf("invalid lottery number: not an integer - %s", parts[4])
 	}
 
-	b.name = parts[0]
-	b.lastname = parts[1]
-	b.document = document
-	b.birthday = parts[3]
-	b.lotteryNumber = lotteryNumber
+	agency, err := strconv.Atoi(parts[5])
+	if err != nil {
+		return fmt.Errorf("invalid agency number: not an integer - %s", parts[5])
+	}
+
+	b.Name = parts[0]
+	b.Lastname = parts[1]
+	b.Document = document
+	b.Birthday = parts[3]
+	b.LotteryNumber = lotteryNumber
+	b.Agency = agency
 
 	return nil
 }

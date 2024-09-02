@@ -3,6 +3,12 @@ import logging
 import signal
 from typing import List
 
+from server.protocol.flag import ResponseFlag
+from server.protocol.message import Message
+from server.utils.socket import write_to_socket
+from server.common.bet import Bet, store_bets
+
+
 class Server:
     def __init__(self, port, listen_backlog):
         self._active_clients: List[socket.socket] = []
@@ -71,14 +77,14 @@ class Server:
         client socket will also be closed
         """
         try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode('utf-8')
+            msg = Message.from_socket(client_sock)
+            bet = Bet.from_str(msg.payload.decode('utf-8'))
             addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-            # TODO: Modify the send to avoid short-writes
-            client_sock.send("{}\n".format(msg).encode('utf-8'))
+            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {str(msg.payload)}')
+            store_bets([bet])
+            write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
         except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
 

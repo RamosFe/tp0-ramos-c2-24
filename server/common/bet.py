@@ -1,6 +1,5 @@
 import csv
 import datetime
-import time
 
 
 """ Bets storage location. """
@@ -23,6 +22,22 @@ class Bet:
         self.document = document
         self.birthdate = datetime.date.fromisoformat(birthdate)
         self.number = int(number)
+
+
+    @staticmethod
+    def from_str(data: str):
+        separated_str = data.split(',')
+        if len(separated_str) != 6:
+            raise ValueError(f'Invalid message: {data}')
+
+        return Bet(
+            first_name=separated_str[0],
+            last_name=separated_str[1],
+            document=separated_str[2],
+            birthdate=separated_str[3],
+            number=separated_str[4],
+            agency=separated_str[5]
+        )
 
 """ Checks whether a bet won the prize or not. """
 def has_won(bet: Bet) -> bool:

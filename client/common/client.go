@@ -2,10 +2,12 @@ package common
 
 import (
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/models"
+	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/protocol"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/utils"
 	"github.com/op/go-logging"
 	"net"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -48,7 +50,15 @@ func (c *Client) StartClientLoop(terminateChan chan os.Signal) {
 		return
 	default:
 		bet := models.Bet{}
-		err = bet.GetFromEnv()
+		agency, err := strconv.Atoi(c.config.ID)
+		if err != nil {
+			log.Criticalf("action: create_bet | result: fail | client_id: %v | error: Invalid agency id %v",
+				c.config.ID,
+				err,
+			)
+			return
+		}
+		err = bet.GetFromEnv(agency)
 		if err != nil {
 			log.Criticalf(
 				"action: create_bet | result: fail | client_id: %v | error: %v",
@@ -58,15 +68,36 @@ func (c *Client) StartClientLoop(terminateChan chan os.Signal) {
 			return
 		}
 
-		err = utils.WriteToSocket(conn, bet.ToBytes())
+		payloadBytes := bet.ToBytes()
+		msg := protocol.Message{
+			MsgType: protocol.SendBet,
+			Size:    len(payloadBytes),
+			Payload: payloadBytes,
+		}
+		err = utils.WriteToSocket(conn, msg.ToBytes())
 		if err != nil {
 			log.Criticalf(
 				"action: send_bet | result: fail | client_id: %v | error: %v",
 				c.config.ID,
 				err,
 			)
+			return
 		}
 
-		log.Infof("action: send_bet | result: success | client_id: %v", c.config.ID)
+		response := protocol.ResponseFlag{}
+		err = response.FromSocket(&conn)
+		if err != nil {
+			log.Criticalf(
+				"action: response_bet | result: fail | client_id: %v | error: %v",
+				c.config.ID,
+				err,
+			)
+			return
+		}
+
+		log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
+			bet.Document,
+			bet.LotteryNumber,
+		)
 	}
 }
