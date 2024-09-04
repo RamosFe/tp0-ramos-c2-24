@@ -3,21 +3,21 @@ import logging
 import signal
 from typing import List
 
-from server.common.state import LotteryState
+from server.common.state import LotteryState, ServerState
 from server.common.winners import Winners, AskWinner
 from server.protocol.flag import ResponseFlag, FlagType
 from server.protocol.identifier import Identifier, ProtocolType
 from server.protocol.message import Message, MessageType
 from server.utils.socket import write_to_socket
-from server.common.bet import Bet, store_bets
+from server.common.bet import Bet
 
 
 class Server:
     def __init__(self, port, listen_backlog):
         # State
-        self._active_clients: List[socket.socket] = []
         self._shutdown: bool = False
         self._lottery_state = LotteryState()
+        self._server_state = ServerState()
 
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,25 +28,9 @@ class Server:
         signal.signal(signal.SIGINT, self._handle_signal)
         signal.signal(signal.SIGTERM, self._handle_signal)
 
-    def _add_active_socket(self, client_socket: socket.socket):
-        """Add a client socket to the list of active clients.
-
-        Args:
-            client_socket (socket.socket): The client socket to add.
-        """
-        self._active_clients.append(client_socket)
-
-    def _remove_active_socket(self, client_socket: socket.socket):
-        """Remove a client socket from the list of active clients.
-
-        Args:
-            client_socket (socket.socket): The client socket to remove.
-        """
-        self._active_clients.remove(client_socket)
-
     def _close_all_active_sockets(self):
         """Close all active client sockets and log the action."""
-        for client_socket in self._active_clients:
+        for client_socket in self._server_state.get_active_clients():
             addr = client_socket.getpeername()
             logging.info(f'action: close client socket | result: success | ip: {addr[0]}')
             client_socket.close()
@@ -71,9 +55,9 @@ class Server:
         while not self._shutdown:
             try:
                 client_sock = self.__accept_new_connection()
-                self._add_active_socket(client_sock)
+                self._server_state.add_active_client(client_sock)
                 self.__handle_client_connection(client_sock)
-                self._remove_active_socket(client_sock)
+                self._server_state.remove_active_client(client_sock)
             except OSError as e:
                 if self._shutdown:
                     logging.info(f'action: receive_sigterm | result: success | msg: breaking server loop')
@@ -138,7 +122,7 @@ class Server:
             bets = Bet.from_multiple_str(msg.payload.decode('utf-8'))
             logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
 
-            store_bets(bets)
+            self._lottery_state.store_bets(bets)
             write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
         except Exception as e:
             # Respond with an error flag
