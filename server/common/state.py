@@ -8,31 +8,6 @@ from server.common.bet import Bet, load_bets, has_won, store_bets
 EXPECTED_AGENCIES = 5
 
 
-class ServerState:
-    def __init__(self):
-        self._active_clients: List[socket.socket] = []
-        self._active_processes: List[Process] = []
-
-    def add_active_process(self, process: Process):
-        self._active_processes.append(process)
-
-
-    def remove_active_process(self, process: Process):
-        self._active_processes.remove(process)
-
-
-    def add_active_client(self, client: socket.socket):
-        self._active_clients.append(client)
-
-
-    def remove_active_client(self, client: socket.socket):
-        self._active_clients.remove(client)
-
-
-    def get_active_clients(self) -> List[socket.socket]:
-        return self._active_clients
-
-
 
 class LotteryState:
     def __init__(self, expected_agencies: int = EXPECTED_AGENCIES):

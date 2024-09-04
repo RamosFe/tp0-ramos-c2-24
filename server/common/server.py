@@ -3,21 +3,23 @@ import logging
 import signal
 from typing import List
 
-from server.common.state import LotteryState, ServerState
 from server.common.winners import Winners, AskWinner
+from server.common.bet import Bet
+from server.common.processes import StateManager
+
 from server.protocol.flag import ResponseFlag, FlagType
 from server.protocol.identifier import Identifier, ProtocolType
 from server.protocol.message import Message, MessageType
 from server.utils.socket import write_to_socket
-from server.common.bet import Bet
 
 
 class Server:
     def __init__(self, port, listen_backlog):
         # State
         self._shutdown: bool = False
-        self._lottery_state = LotteryState()
-        self._server_state = ServerState()
+        self._state = StateManager()
+        # TODO - Delete when handling multiprocesses
+        self._active_sockets: List[socket] = []
 
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,7 +32,8 @@ class Server:
 
     def _close_all_active_sockets(self):
         """Close all active client sockets and log the action."""
-        for client_socket in self._server_state.get_active_clients():
+        # TODO - Delete this when handling multiprocessing
+        for client_socket in self._active_sockets:
             addr = client_socket.getpeername()
             logging.info(f'action: close client socket | result: success | ip: {addr[0]}')
             client_socket.close()
@@ -55,9 +58,11 @@ class Server:
         while not self._shutdown:
             try:
                 client_sock = self.__accept_new_connection()
-                self._server_state.add_active_client(client_sock)
+                # TODO - Delete when handling multiprocessing
+                self._active_sockets.append(client_sock)
                 self.__handle_client_connection(client_sock)
-                self._server_state.remove_active_client(client_sock)
+                # TODO - Delete when handling multiprocessing
+                self._active_sockets.remove(client_sock)
             except OSError as e:
                 if self._shutdown:
                     logging.info(f'action: receive_sigterm | result: success | msg: breaking server loop')
@@ -82,9 +87,9 @@ class Server:
                 elif identifier.type == ProtocolType.TypeFlag:
                     flag = ResponseFlag.from_socket(client_sock)
                     if flag.flag_type == FlagType.END:
-                        self._lottery_state.agency_finished()
+                        self._state.lottery_state.agency_finished()
                         logging.info(f'action: receive_end | result: success | ip: {addr[0]}')
-                        if self._lottery_state.has_winners():
+                        if self._state.lottery_state.has_winners():
                             logging.info(f'action: sorteo | result: success')
                         break
                 else:
@@ -122,7 +127,7 @@ class Server:
             bets = Bet.from_multiple_str(msg.payload.decode('utf-8'))
             logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
 
-            self._lottery_state.store_bets(bets)
+            self._state.lottery_state.store_bets(bets)
             write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
         except Exception as e:
             # Respond with an error flag
@@ -141,8 +146,8 @@ class Server:
             ask_winners = AskWinner.from_bytes(msg.payload)
             agency_id = ask_winners.agency_id
 
-            if self._lottery_state.has_winners():
-                winners_by_agency = self._lottery_state.get_winners_by_agency(agency_id)
+            if self._state.lottery_state.has_winners():
+                winners_by_agency = self._state.lottery_state.get_winners_by_agency(agency_id)
                 winners_documents = [bet.document for bet in winners_by_agency]
                 winners_bytes = Winners(winners_documents).to_bytes()
 
