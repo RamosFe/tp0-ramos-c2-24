@@ -11,7 +11,9 @@ type MessageType int
 
 const (
 	// MsgTypeSendBet represents a type used for messages that sends bets
-	MsgTypeSendBet MessageType = iota
+	MsgTypeSendBet     MessageType = iota
+	MsgTypeAskWinners  MessageType = iota
+	MsgTypeSendWinners MessageType = iota
 )
 
 const (

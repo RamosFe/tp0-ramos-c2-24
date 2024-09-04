@@ -1022,3 +1022,141 @@ Desde el servidor la lógica es más sencilla:
 - Recibe conección del cliente.
 - Si el mensaje es del tipo `IdentifierTypeMessage`, parsea el payload con los bets y lo agrega con `store_bets` y responde con OK o ERROR dependiendo del resultado de la operación.
 - Si el mensaje es del tipo `IdentifierTypeFlag` y es un `END`, deja de esperar bets del cliente.
+
+# Ejecricio 7
+
+Se agregaron 2 modelos para manejar todo lo relacionado a los ganadores del sorteo.
+El primero de estos modelos es `Winners` y es utilizado para mandar la cantidad de ganadores para una agencia y los
+documentos de cada uno de los ganadores. Se pasa la cantidad de ganadores para manejar los casos en el que la agencia no tiene
+ningun ganador.
+
+```python
+class Winners:
+    def __init__(self, documents: List[str]):
+        """Initialize the Winners with a list of document strings.
+
+        Args:
+            documents (List[str]): List of document strings.
+        """
+        self._documents = documents
+
+    def to_bytes(self) -> bytes:
+        """Convert the Winners instance to a bytes representation.
+
+        Returns:
+            bytes: Byte representation of the Winners, including the count and documents.
+        """
+        size = len(self._documents)
+        joined = f'{size}' + ','.join(self._documents)
+        return joined.encode('utf-8')
+
+```
+
+El segundo es `AskWinner` que representa el request del cliente pidiendo los ganadores. En el mismo se adjunta
+el id de la agencia.
+
+```python
+class AskWinner:
+    AGENCY_ID_SIZE = 1
+
+    def __init__(self, agency_id: int):
+        """Initialize the AskWinner with an agency ID.
+
+        Args:
+            agency_id (int): The ID of the agency.
+        """
+        self.agency_id = agency_id
+
+    @classmethod
+    def from_bytes(cls, data: bytes):
+        """Create an AskWinner instance from bytes data.
+
+        Args:
+            data (bytes): Byte data to decode into an AskWinner instance.
+
+        Returns:
+            AskWinner: An instance of AskWinner.
+
+        Raises:
+            ValueError: If the data length is invalid.
+        """
+        if len(data) != 1:
+            raise ValueError("Invalid data length for AskWinner")
+        agency_id = data[0]
+        return cls(agency_id)
+```
+
+
+Finalmente, el cliente utiliza  una lógica de re-intentos para pedir los winners. Se hizo de esta manera para no bloquear
+el server al igual que para permitir que el cliente no se quede bloqueado esperando los resultados.
+
+```go
+	for i := 0; i < maxNumberOfRetries; i++ {
+		select {
+		case <-terminateChan:
+			log.Infof("action: sigterm_signal | result: success | client_id: %v", c.config.ID)
+			return nil
+		default:
+			{
+				conn, err := net.Dial("tcp", c.config.ServerAddress)
+				if err != nil {
+					c.LogError("connect", err)
+					return err
+				}
+
+				askWinners := models.AskWinner{AgencyId: c.agency}
+				msg := protocol.Message{
+					Identifier: protocol.Identifier{Type: protocol.IdentifierTypeMessage},
+					MsgType:    protocol.MsgTypeAskWinners,
+					Size:       len(askWinners.ToBytes()),
+					Payload:    askWinners.ToBytes(),
+				}
+				if err := utils.WriteToSocket(conn, msg.ToBytes()); err != nil {
+					c.LogError("ask_winners", err)
+					conn.Close()
+					return err
+				}
+
+				identifier := protocol.Identifier{}
+				if er := identifier.FromSocket(&conn); er != nil {
+					c.LogError("recv_winners", err)
+					conn.Close()
+					return err
+				}
+
+				if identifier.Type == protocol.IdentifierTypeMessage {
+					response := protocol.Message{}
+					if err := response.FromSocket(&conn); err != nil {
+						c.LogError("recv_winners", err)
+						conn.Close()
+						return err
+					}
+					winners := models.Winners{}
+					if err := winners.FromBytes(response.Payload); err != nil {
+						c.LogError("recv_winners", err)
+						conn.Close()
+						return err
+					}
+
+					log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v}",
+						len(winners.Documents),
+					)
+					conn.Close()
+					return nil
+				} else if identifier.Type == protocol.IdentifierTypeFlag {
+					response := protocol.ResponseFlag{}
+					if err := response.FromSocket(&conn); err != nil {
+						c.LogError("recv_winners", err)
+						conn.Close()
+						return err
+					}
+					log.Infof("action: recv_winners | result: not-available | msg: waiting %v seconds for retry",
+						timeBetweenRestries,
+					)
+					conn.Close()
+					time.Sleep(time.Duration(timeBetweenRestries) * time.Second)
+				}
+			}
+		}
+	}
+```
