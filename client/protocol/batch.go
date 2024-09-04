@@ -5,12 +5,14 @@ import (
 	"fmt"
 )
 
+const MaxBytesLimit = 8000
+
 var FullBatcherError error = fmt.Errorf("the batcher is full")
 
 type Batcher struct {
-	MaxBytesLimit int
-	Counter       int
-	buffer        bytes.Buffer
+	MaxLimit int
+	Counter  int
+	buffer   bytes.Buffer
 }
 
 func NewBatcher(maxBytesLimit int) *Batcher {
@@ -22,15 +24,19 @@ func NewBatcher(maxBytesLimit int) *Batcher {
 }
 
 func (b *Batcher) IsFull() bool {
-	if b.buffer.Len() > b.MaxBytesLimit {
+	if b.Counter > b.MaxLimit {
 		return true
 	}
 
 	return false
 }
 
+func (b *Batcher) IsEmpty() bool {
+	return b.Counter == 0 && b.buffer.Len() == 0
+}
+
 func (b *Batcher) IsFullWithNewItem(message []byte) bool {
-	if b.buffer.Len()+len(message) > b.MaxBytesLimit {
+	if b.buffer.Len()+len(message) > MaxBytesLimit || b.Counter+1 > b.MaxLimit {
 		return true
 	}
 	return false

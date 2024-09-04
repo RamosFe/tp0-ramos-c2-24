@@ -83,14 +83,7 @@ class Server:
                 identifier = Identifier.from_socket(client_sock)
 
                 if identifier.type == ProtocolType.TypeMessage:
-                    msg = Message.from_socket(client_sock)
-                    bets = Bet.from_multiple_str(msg.payload.decode('utf-8'))
-
-                    store_bets(bets)
-                    # TODO - Handle error response
-                    logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
-
-                    write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
+                    self._handle_bet(client_sock)
                 elif identifier.type == ProtocolType.TypeFlag:
                     flag = ResponseFlag.from_socket(client_sock)
                     if flag.flag_type == FlagType.END:
@@ -102,6 +95,22 @@ class Server:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
+
+
+    def _handle_bet(self, client_sock: socket.socket):
+        try:
+            msg = Message.from_socket(client_sock)
+            bets = Bet.from_multiple_str(msg.payload.decode('utf-8'))
+            logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
+
+            store_bets(bets)
+            write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
+        except Exception as e:
+            # Respond with an error flag
+            write_to_socket(client_sock, ResponseFlag.error().to_bytes())
+            logging.error(f'action: apuesta_procesada | result: fail | error: {e}')
+            raise e
+
 
     def __accept_new_connection(self):
         """

@@ -22,11 +22,7 @@ func ReadBetCSV(filename string, agency int) ([]models.Bet, error) {
 	}
 
 	var bets []models.Bet
-	for i, record := range records {
-		if i == 0 {
-			continue
-		}
-
+	for _, record := range records {
 		document, err := strconv.Atoi(record[2])
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse document number: %v, err")
