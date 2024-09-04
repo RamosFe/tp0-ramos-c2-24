@@ -944,3 +944,81 @@ class ResponseFlag:
     def error(cls):
         return cls(FlagType.ERROR)
 ```
+
+# Ejercicio 6
+
+Para este ejercicio se agrego la estructura `Batcher` para todo lo relacionado al manejo
+de batchs de datos:
+
+```go
+type Batcher struct {
+	MaxLimit int
+	Counter  int
+	buffer   bytes.Buffer
+}
+
+func NewBatcher(maxBytesLimit int) *Batcher {
+	return &Batcher{
+		maxBytesLimit,
+		0,
+		bytes.Buffer{},
+	}
+}
+
+func (b *Batcher) IsFull() bool {
+	if b.Counter > b.MaxLimit {
+		return true
+	}
+
+	return false
+}
+
+func (b *Batcher) IsEmpty() bool {
+	return b.Counter == 0 && b.buffer.Len() == 0
+}
+
+func (b *Batcher) IsFullWithNewItem(message []byte) bool {
+	if b.buffer.Len()+len(message) > MaxBytesLimit || b.Counter+1 > b.MaxLimit {
+		return true
+	}
+	return false
+}
+
+func (b *Batcher) Add(message []byte) error {
+	if b.IsFullWithNewItem(message) {
+		return FullBatcherError
+	}
+
+	b.buffer.Write(message)
+	b.buffer.WriteByte('\n')
+	b.Counter += 1
+	return nil
+}
+
+func (b *Batcher) ToBytes() []byte {
+	return b.buffer.Bytes()[:b.buffer.Len()-1]
+}
+
+func (b *Batcher) Reset() {
+	b.Counter = 0
+	b.buffer.Reset()
+}
+```
+
+Se agrego otro campo en el header del protocolo, el `Identifier` utilizado para distinguir cual de los 2 tipos de mensaje es (representado con 1 byte):
+- `IdentifierTypeMessage`: Mensaje con payload. Este es el mismo que se menciona para el Ej5 `Message`.
+- `IdentifierTypeFlag`: Mensaje con 1 byte que señaliza un evento. Este es el mismo que se menciona para el Ej5 `ResponseFlag`.
+
+Tambien se agrego el `ResponseFlag` del tipoe `END` para señalizar
+en el protocolo cuando el cliente deja de enviar mensajes. El cliente sigue
+la siguiente lógica:
+- Lee cada línea del CSV.
+- Si el batch no esta lleno y no supera el límite de 8Kb con el nuevo elemento, se agrega el bet al batch.
+- Si el batch esta lleno o supera el límite de 8Kb con el nuevo elemento, se envía todos los bets dentro del batch, se resetea el mismo y se agrega el nuevo bet.
+- Una vez que se termina de leer todo el archivo, se envía todo lo que quedo en el batch.
+- Finalmente se envía el mensaje de `END` al servidor para señalizar que no se va a mandar más información.
+
+Desde el servidor la lógica es más sencilla:
+- Recibe conección del cliente.
+- Si el mensaje es del tipo `IdentifierTypeMessage`, parsea el payload con los bets y lo agrega con `store_bets` y responde con OK o ERROR dependiendo del resultado de la operación.
+- Si el mensaje es del tipo `IdentifierTypeFlag` y es un `END`, deja de esperar bets del cliente.
