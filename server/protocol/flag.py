@@ -13,10 +13,12 @@ class FlagType(int, enum.Enum):
         OK (int): Represents a successful response.
         ERROR (int): Represents an error response.
         END (int): Represents the end of communication.
+        NO_WINNERS (int): Represents that the winners aren't available
     """
     OK = 0
     ERROR = 1
     END = 2
+    NO_WINNERS = 3
 
 class ResponseFlag:
     """

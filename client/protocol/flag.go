@@ -9,9 +9,10 @@ type FlagType int
 
 // Define possible flag types
 const (
-	FlagTypeOK    FlagType = iota
-	FlagTypeERROR FlagType = iota
-	FlagTypeEND   FlagType = iota
+	FlagTypeOK        FlagType = iota
+	FlagTypeERROR     FlagType = iota
+	FlagTypeEND       FlagType = iota
+	FlagTypeNoWinners FlagType = iota
 )
 
 // FlagTypeSize Size of the FlagType field in bytes
@@ -35,19 +36,13 @@ func (r *ResponseFlag) ToBytes() []byte {
 
 // FromSocket initializes the ResponseFlag by reading data from a socket.
 func (r *ResponseFlag) FromSocket(conn *net.Conn) error {
-	identifierBuf := make([]byte, TypeSize)
-	err := utils.ReadFromSocket(*conn, &identifierBuf, TypeSize)
-	if err != nil {
-		return err
-	}
-
 	flagTypeBuf := make([]byte, FlagTypeSize)
-	err = utils.ReadFromSocket(*conn, &flagTypeBuf, FlagTypeSize)
+	err := utils.ReadFromSocket(*conn, &flagTypeBuf, FlagTypeSize)
 	if err != nil {
 		return err
 	}
 
-	r.Identifier = Identifier{Type(identifierBuf[0])}
+	r.Identifier = Identifier{IdentifierTypeFlag}
 	r.FlagType = FlagType(flagTypeBuf[0])
 	return nil
 }

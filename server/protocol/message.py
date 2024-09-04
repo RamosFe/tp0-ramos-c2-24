@@ -12,12 +12,15 @@ class MessageType(int, enum.Enum):
 
     Attributes:
         SEND_BET: Message type representing a send bet action.
+        ASK_WINNERS: Message type representing a request for winners.
+        SEND_WINNERS: Message type representing a request with the winners.
     """
     SEND_BET = 0
+    ASK_WINNERS = 1
+    SEND_WINNERS = 2
 
 class Message:
-    """
-    A class representing a message with a type, size, and payload.
+    """A class representing a message with a type, size, and payload.
 
     Attributes:
         MSG_TYPE_SIZE (int): Size of the message type field in bytes.
@@ -29,8 +32,7 @@ class Message:
     ENDIAN: Literal["little", "big"] = "big"
 
     def __init__(self, msg_type: MessageType, size: int, payload: bytes):
-        """
-        Initializes a Message instance with a given type, size, and payload.
+        """Initializes a Message instance with a given type, size, and payload.
 
         Args:
             msg_type (MessageType): The type of the message.
@@ -43,8 +45,7 @@ class Message:
         self.payload = payload
 
     def to_bytes(self) -> bytes:
-        """
-        Converts the message to a byte representation.
+        """Converts the message to a byte representation.
 
         Returns:
             bytes: The byte representation of the message, including the type, size, and payload.
@@ -55,8 +56,7 @@ class Message:
 
     @classmethod
     def from_socket(cls, socket: socket.socket):
-        """
-        Creates a Message instance by reading data from a socket.
+        """Creates a Message instance by reading data from a socket.
 
         Args:
             socket (socket.socket): The socket from which to read the message data.

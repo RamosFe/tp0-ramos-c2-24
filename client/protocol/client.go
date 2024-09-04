@@ -5,6 +5,7 @@ import (
 	"net"
 )
 
+// SendBets Sends a batch of bets to the server and receives a response flag
 func SendBets(conn *net.Conn, data []byte) (*ResponseFlag, error) {
 	msg := Message{
 		Identifier: Identifier{Type: IdentifierTypeMessage},
@@ -13,6 +14,12 @@ func SendBets(conn *net.Conn, data []byte) (*ResponseFlag, error) {
 		Payload:    data,
 	}
 	err := utils.WriteToSocket(*conn, msg.ToBytes())
+	if err != nil {
+		return nil, err
+	}
+
+	identifier := Identifier{}
+	err = identifier.FromSocket(conn)
 	if err != nil {
 		return nil, err
 	}
