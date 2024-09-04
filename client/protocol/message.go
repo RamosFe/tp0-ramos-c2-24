@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"bytes"
 	"encoding/binary"
 	"github.com/7574-sistemas-distribuidos/docker-compose-init/client/utils"
 	"net"
@@ -9,8 +10,8 @@ import (
 type MessageType int
 
 const (
-	// SendBet represents a type used for messages that sends bets
-	SendBet MessageType = iota
+	// MsgTypeSendBet represents a type used for messages that sends bets
+	MsgTypeSendBet MessageType = iota
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 
 // Message represents a message that contains a variable-size payload
 type Message struct {
+	Identifier Identifier
 	// MsgType represents the type of the message
 	MsgType MessageType
 	// Size represents the size of the payload
@@ -32,12 +34,18 @@ type Message struct {
 
 // ToBytes converts the Message to a byte slice.
 func (m *Message) ToBytes() []byte {
+	identifierBuf := m.Identifier.ToBytes()
 	msgTypeBuf := []byte{byte(m.MsgType)}
 
 	headerBuf := make([]byte, HeaderSize)
 	binary.BigEndian.PutUint16(headerBuf, uint16(m.Size))
 
-	return append(append(msgTypeBuf, headerBuf...), m.Payload...)
+	buffer := bytes.Buffer{}
+	buffer.Write(identifierBuf)
+	buffer.Write(msgTypeBuf)
+	buffer.Write(headerBuf)
+	buffer.Write(m.Payload)
+	return buffer.Bytes()
 }
 
 // FromSocket initializes the Message by reading data from a socket.
@@ -60,6 +68,7 @@ func (m *Message) FromSocket(conn *net.Conn) error {
 		return err
 	}
 
+	m.Identifier = Identifier{IdentifierTypeMessage}
 	m.MsgType = MessageType(msgTypeBuf[0])
 	m.Size = int(binary.BigEndian.Uint16(sizeBuf))
 	m.Payload = payloadBuf

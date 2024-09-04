@@ -52,6 +52,16 @@ class Bet:
             agency=separated_str[5]
         )
 
+    @classmethod
+    def from_multiple_str(cls, data:str):
+        list_of_bets = []
+        separate_bets = data.split('\n')
+
+        for value in separate_bets:
+            list_of_bets.append(Bet.from_str(value))
+
+        return list_of_bets
+
 """ Checks whether a bet won the prize or not. """
 def has_won(bet: Bet) -> bool:
     return bet.number == LOTTERY_WINNER_NUMBER

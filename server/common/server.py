@@ -3,7 +3,8 @@ import logging
 import signal
 from typing import List
 
-from server.protocol.flag import ResponseFlag
+from server.protocol.flag import ResponseFlag, FlagType
+from server.protocol.identifier import Identifier, ProtocolType
 from server.protocol.message import Message
 from server.utils.socket import write_to_socket
 from server.common.bet import Bet, store_bets
@@ -54,9 +55,6 @@ class Server:
         communication with a client. After client with communucation
         finishes, servers starts to accept new connections again
         """
-
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
         while not self._shutdown:
             try:
                 client_sock = self.__accept_new_connection()
@@ -77,16 +75,39 @@ class Server:
         client socket will also be closed
         """
         try:
-            msg = Message.from_socket(client_sock)
-            bet = Bet.from_str(msg.payload.decode('utf-8'))
             addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {str(msg.payload)}')
-            store_bets([bet])
-            write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
+            while True:
+                identifier = Identifier.from_socket(client_sock)
+
+                if identifier.type == ProtocolType.TypeMessage:
+                    self._handle_bet(client_sock)
+                elif identifier.type == ProtocolType.TypeFlag:
+                    flag = ResponseFlag.from_socket(client_sock)
+                    if flag.flag_type == FlagType.END:
+                        logging.info(f'action: receive_end | result: success | ip: {addr[0]}')
+                        break
+                else:
+                    logging.error(f"action: receive_message | result: fail | error: unexpected type {identifier}")
         except OSError as e:
             logging.error(f"action: receive_message | result: fail | error: {e}")
         finally:
             client_sock.close()
+
+
+    def _handle_bet(self, client_sock: socket.socket):
+        try:
+            msg = Message.from_socket(client_sock)
+            bets = Bet.from_multiple_str(msg.payload.decode('utf-8'))
+            logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
+
+            store_bets(bets)
+            write_to_socket(client_sock, ResponseFlag.ok().to_bytes())
+        except Exception as e:
+            # Respond with an error flag
+            write_to_socket(client_sock, ResponseFlag.error().to_bytes())
+            logging.error(f'action: apuesta_procesada | result: fail | error: {e}')
+            raise e
+
 
     def __accept_new_connection(self):
         """
