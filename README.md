@@ -193,9 +193,10 @@ bash scripts/docker_generator.sh
 <summary>Ejemplo de ejecución</summary>
 
 ```console
-bash scripts/docker_generator.sh                                    
-Ingrese el nombre del archivo a crear: example.yaml
-Ingrese el número de clientes: 12
+bash generar-compose.sh docker-compose-dev.yaml 5                                            tp0-ramos-c2-24  01:59:20 AM
+Nombre del archivo de salida: docker-compose-dev.yaml
+Cantidad de clientes: 5
+
 ```
 
 </details>
