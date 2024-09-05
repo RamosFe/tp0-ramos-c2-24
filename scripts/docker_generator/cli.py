@@ -14,8 +14,8 @@ def check_number(value: str) -> int:
         argparse.ArgumentTypeError: If the value is not a valid integer or is less than or equal to 0.
     """
     int_to_check = int(value)
-    if int_to_check <= 0:
-        raise argparse.ArgumentTypeError(f"Invalid number: {value}. The number must be greater than 0.")
+    if int_to_check < 0:
+        raise argparse.ArgumentTypeError(f"Invalid number: {value}. The number must be greater than 0 or equal.")
     return int_to_check
 
 def create_parser() -> argparse.ArgumentParser:
