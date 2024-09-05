@@ -1,6 +1,6 @@
 TEST_MESSAGE="Test Message"
 
-RESPONSE=$(echo "$TEST_MESSAGE" | nc "server:12345")
+RESPONSE=$(docker run --rm --network "tp0_testing_net" alpine sh -c "echo \"$TEST_MESSAGE\" | nc server:12345")
 
 if [ "$RESPONSE" = "$TEST_MESSAGE" ]; then
     echo "action: test_echo_server | result: success"

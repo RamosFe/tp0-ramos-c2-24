@@ -24,17 +24,6 @@ services:
     volumes:
       - ./client/config.yaml:/config.yaml
 
-  netcat:
-    container_name: netcat
-    image: alpine:latest
-    entrypoint: [ "/bin/sh", "./validar-echo-server.sh" ]
-    networks:
-      - testing_net
-    depends_on:
-      - server
-    volumes:
-      - ./validar-echo-server.sh:/validar-echo-server.sh
-
 networks:
   testing_net:
     ipam:
