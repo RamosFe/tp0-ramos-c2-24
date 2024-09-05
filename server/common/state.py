@@ -57,7 +57,6 @@ class LotteryState:
             if has_won(bet):
                 winners.append(bet)
 
-        logging.info(f"Resultados {[winner.__dict__ for winner in winners]}")
         self.lottery_results = winners
 
     def get_winners_by_agency(self, agency_id: int) -> List[Bet]:
