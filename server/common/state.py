@@ -1,9 +1,10 @@
-import logging
-from typing import List, Optional, Set
+from typing import List, Optional
 
-from server.common.bet import Bet, load_bets, has_won
+from server.common.bet import Bet, load_bets, has_won, store_bets
 
 EXPECTED_AGENCIES = 5
+
+
 
 class LotteryState:
     def __init__(self, expected_agencies: int = EXPECTED_AGENCIES):
@@ -15,6 +16,9 @@ class LotteryState:
         self.expected_agencies = expected_agencies
         self.agencies_finished = 0
         self.lottery_results: Optional[List[Bet]] = None
+
+    def store_bets(self, bets: List[Bet]):
+        store_bets(bets)
 
     def agency_finished(self):
         """Increment the count of finished agencies and check if all agencies have finished.
@@ -50,7 +54,6 @@ class LotteryState:
             if has_won(bet):
                 winners.append(bet)
 
-        logging.info(f"Resultados {[winner.__dict__ for winner in winners]}")
         self.lottery_results = winners
 
     def get_winners_by_agency(self, agency_id: int) -> List[Bet]:
