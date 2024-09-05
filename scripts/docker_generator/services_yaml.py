@@ -32,7 +32,7 @@ class ServicesDefinition:
             f"    networks:\n"
             f"      - testing_net\n"
             f"    volumes:\n"
-            f"      - ./config/server/config.ini:/config.ini\n"
+            f"      - ./server/config.ini:/config.ini\n"
         )
 
     def get_networks_definition(self) -> str:

@@ -44,5 +44,5 @@ class ClientDefinition:
             f"    depends_on:\n"
             f"      - server\n\n"
             f"    volumes:\n"
-            f"      - ./config/client/config.yaml:/config.yaml\n"
+            f"      - ./client/config.yaml:/config.yaml\n"
         )
