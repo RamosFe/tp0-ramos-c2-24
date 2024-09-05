@@ -1160,3 +1160,133 @@ el server al igual que para permitir que el cliente no se quede bloqueado espera
 		}
 	}
 ```
+
+# Ejercicio 8
+
+## Concurrencia
+
+Para el ejercicio 8 se utilizo la libreria de `multiprocessing`. Lo primer que se hizo fue mover todo el estado del server
+a un objeto, para poder centralizar el estado del mismo. Al mismo tiempo todas las operaciones relacionadas con la interacción de
+el archivo de bets (`store_bets` y `load_bets`) se movieron a este nuevo objeto. Para poder disponibilizar este estado a los multiples procesos
+se utilizo `multiprocessing.Manager` y se registro la clase `LotteryState` en el manager.
+
+```python
+
+class CustomServerProcessManager(SyncManager):
+    pass
+
+class StateManager:
+    def __init__(self, expected_agencies: int = EXPECTED_AGENCIES):
+        CustomServerProcessManager.register('LotteryState', LotteryState)
+
+        self.manager = CustomServerProcessManager()
+        self.manager.start()
+        self.lottery_state = self.manager.LotteryState(expected_agencies)
+
+    def terminate(self):
+        self.manager.shutdown()
+        self.manager.join()
+```
+
+Recordemos que `multiprocessing.Manager` por abajo crea un proceso que consta de 3 partes:
+El administrador consta de 3 partes:
+
+- El manager: toma registros de clases, administra un proceso del servidor, solicita al servidor que cree instancias de clases registradas y entrega los proxies correspondientes al usuario.
+- El servidor: lo inicia el administrador en un proceso de servidor y continúa recibiendo y respondiendo solicitudes del administrador y los servidores proxy;
+- Proxies: son "referencias" a objetos en el proceso del servidor; se utilizan en procesos de cliente para comunicarse con sus objetos de destino.
+
+La clase `StateManager` crea un `SyncManager` y registra la clase `LotteryState` para poder crear un objeto en ese proceso
+y obtener el proxy para comunicarnos con el mismo. Este proxy es el que se utiliza en los distintos procesos workers para que
+el proceso encargado de la comunicación con el socket del cliente puede interactuar con este estado. Finalmente, `multiprocessing.Manager`
+nos asegura que las operaciones sobre los proxy son process-safe.
+
+
+Finalmente toda la lógica del manejo de los mensajes de los clientes (antes manejado por `__handle_client`) se movio a su 
+propio proceso, permitiendo que el server pueda manejar mensajes
+de manera concurrente:
+
+```python
+class ClientProcess(Process):
+    def __init__(self, client_socket: socket.socket, lottery_state: LotteryState):
+        super().__init__()
+        self.client_socket = client_socket
+        self.lottery_state = lottery_state
+
+        self.addr = self.client_socket.getpeername()[0]
+```
+
+Este proceso cliente acepta el socket del cliente y el proxy del lottery_state para ir actualizando
+los bets al igual que para obtener los ganadores.
+
+## Manejo de Shutdown
+
+Al servidor se le agrego una lista de procesos para, en caso de recibir una señal, poder ir recorriendo cada
+uno de los procesos e ir señalizandoles su terminación.
+
+```python
+        def _handle_signal(self, signum, stack):
+        """Handle termination signals to shut down the server.
+    
+        Args:
+            signum (int): The signal number.
+            stack (object): The stack frame where the signal was received.
+        """
+        logging.info(f'action: signal_handler | result: success | signal: {signum}')
+        self._shutdown = True
+        
+        self._server_socket.close()
+        logging.debug(f'action: close server socket | result: success')
+        
+        self._terminate_client_processes()
+        self._state.terminate()
+        
+        def _terminate_client_processes(self):
+            for process in self._list_of_processes:
+                process.terminate()
+                process.join()
+    
+
+        def run(self):
+        """Run the server loop to accept and handle client connections."""
+        while not self._shutdown:
+            try:
+                client_sock = self.__accept_new_connection()
+                new_client_process = ClientProcess(client_sock, self._state.lottery_state)
+                new_client_process.start()
+                self._list_of_processes.append(new_client_process)
+            except OSError as e:
+                if self._shutdown:
+                    logging.info(f'action: receive_sigterm | result: success | msg: breaking server loop')
+                else:
+                    logging.error(f'action: accept_connection | result: fail | error: {e}')
+
+```
+
+Cada uno de los `ClientProcess` tiene su handler para manejar la señal de `SIGTERM` triggereada por el `process.terminate()`.
+En este handler se maneja el cierre de la conexión con el usuario para que no quede ningun recurso sin liberar.
+
+```python
+class ClientProcess(Process):
+    def __init__(self, client_socket: socket.socket, lottery_state: LotteryState):
+        super().__init__()
+        self.client_socket = client_socket
+        self.lottery_state = lottery_state
+
+        self.addr = self.client_socket.getpeername()[0]
+
+
+    def _handle_signal(self, signum, stack):
+        """Handle termination signals to shut down the client process.
+
+        Args:
+            signum (int): The signal number.
+            stack (object): The stack frame where the signal was received.
+        """
+        self.client_socket.close()
+
+    def run(self):
+        # Define signal handlers
+        signal.signal(signal.SIGINT, self._handle_signal)
+        signal.signal(signal.SIGTERM, self._handle_signal)
+
+```
