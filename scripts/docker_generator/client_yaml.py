@@ -38,7 +38,6 @@ class ClientDefinition:
             f"    entrypoint: /client\n"
             f"    environment:\n"
             f"      - CLI_ID={self._number}\n"
-            f"      - CLI_LOG_LEVEL={self._log_level}\n"
             f"    networks:\n"
             f"      - testing_net\n"
             f"    depends_on:\n"

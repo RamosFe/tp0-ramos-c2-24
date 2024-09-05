@@ -28,7 +28,6 @@ class ServicesDefinition:
             f"    entrypoint: python3 /main.py\n"
             f"    environment:\n"
             f"      - PYTHONUNBUFFERED=1\n"
-            f"      - LOGGING_LEVEL={self._log_level}\n"
             f"    networks:\n"
             f"      - testing_net\n"
             f"    volumes:\n"
