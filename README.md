@@ -186,7 +186,7 @@ Se escribio el código necesario para la creación de un `yaml` con N clientes, 
 y el nombre del archivo `yaml` configurable por cli. Para ejecutar el script se debe:
 
 ```console
-bash scripts/docker_generator.sh
+bash generar-compose.sh docker-compose-dev.yaml 5   
 ```
 
 <details>
